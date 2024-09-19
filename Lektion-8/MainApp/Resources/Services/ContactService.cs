@@ -8,10 +8,13 @@ public class ContactService : IContactService<Contact,Contact>
 {
 
     private readonly IFileService _fileService;
+    private List<Contact> _contacts;
 
     public ContactService(string filePath)
     {
         _fileService = new FileService(filePath);
+        _contacts = [];
+        GetAll();
     }
 
        
@@ -19,7 +22,9 @@ public class ContactService : IContactService<Contact,Contact>
     {
         try
         {
-            var json = JsonConvert.SerializeObject(contact);
+            _contacts.Add(contact);
+
+            var json = JsonConvert.SerializeObject(_contacts);
             var result = _fileService.SaveToFile(json);
 
             if (result.Succeeded)
@@ -37,7 +42,23 @@ public class ContactService : IContactService<Contact,Contact>
     // READ
     public ResultResponse<IEnumerable<Contact>> GetAll()
     {
-        throw new NotImplementedException();
+        try
+        {
+            var result = _fileService.GetFromFile();
+
+            if (result.Succeeded)
+            {
+                _contacts = JsonConvert.DeserializeObject<List<Contact>>(result.Result!)!;
+                return new ResultResponse<IEnumerable<Contact>> { Succeeded = true, Result = _contacts };
+            }           
+            else
+                return new ResultResponse<IEnumerable<Contact>> { Succeeded = false, Message = result.Message };
+
+        }
+        catch (Exception ex)
+        {
+            return new ResultResponse<IEnumerable<Contact>> { Succeeded = false, Message = ex.Message };
+        }
     }
 
     public ResultResponse<Contact> GetOne(string id)
