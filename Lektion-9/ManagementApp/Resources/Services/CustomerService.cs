@@ -77,7 +77,6 @@ public class CustomerService
         {
             return ResultStatus.Failed;
         }
-
     }
 
     public void GetCustomersFromFile()
